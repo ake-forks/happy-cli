@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Create tarball
+        run: npm pack
+
+      - name: Get package info
+        id: pkg
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          echo "tarball=$(ls *.tgz)" >> $GITHUB_OUTPUT
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pkg.outputs.version }}-patched
+          name: v${{ steps.pkg.outputs.version }}-patched
+          files: ${{ steps.pkg.outputs.tarball }}
+          body: |
+            Patched release with fix for [#124](https://github.com/slopus/happy-cli/issues/124) (competing processes when switching to local mode).
+
+            Install with:
+            ```bash
+            npm install -g https://github.com/ake-forks/happy-cli/releases/download/v${{ steps.pkg.outputs.version }}-patched/${{ steps.pkg.outputs.tarball }}
+            ```
