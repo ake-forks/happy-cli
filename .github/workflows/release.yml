@@ -20,6 +20,9 @@ jobs:
       - name: Install dependencies
         run: npm install --ignore-scripts
 
+      - name: Build
+        run: npm run build
+
       - name: Create tarball
         run: npm pack
 
